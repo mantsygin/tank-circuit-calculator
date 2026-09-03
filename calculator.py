@@ -6,21 +6,6 @@ class Capacitor:
         self.capacitance = capacitance_farad
 
 
-class Wire:
-    def __init__(self, wire_length_cm, wire_diameter_mm, wire_resistivity_microohm_cm):
-        self.wire_length = wire_length_cm/100
-        self.wire_diameter = wire_diameter_mm/1000
-        self.wire_resistivity = wire_resistivity_microohm_cm*(10**(-8))
-
-    @property
-    def wire_cross_sectional_area(self):
-        return math.pi*((self.wire_diameter**2)/4)
-
-    @property
-    def resistance(self):
-        return (self.wire_resistivity*self.wire_length)/self.wire_cross_sectional_area
-
-
 class Core:
     def __init__(self, shape, mu_r, dim_1, dim_2, dim_3=None):
         self.shape = shape.lower()
@@ -36,7 +21,6 @@ class Core:
         elif shape in ['customized', 'custom']:
             self.cross_section = dim_1
             self.magnetic_length = dim_2
-
 
     @property
     def core_cross_sectional_area(self):
@@ -55,3 +39,41 @@ class Core:
             return self.length
         if self.shape in ['customized', 'custom']:
             return self.magnetic_length
+
+
+class Wire:
+    def __init__(self, wire_diameter_mm, wire_resistivity_microohm_cm, insulation_thickness_mm, core):
+        self.wire_diameter = wire_diameter_mm/1000
+        self.wire_resistivity = wire_resistivity_microohm_cm * (10**(-8))
+        self.wire_insulation_thickness = insulation_thickness_mm/1000
+        self.core = core
+
+    @property
+    def wire_diameter_with_insulation(self):
+        return self.wire_diameter + 2 * self.wire_insulation_thickness
+
+    @property
+    def wire_cross_sectional_area(self):
+        return math.pi * ((self.wire_diameter**2)/4)
+
+    @property
+    def coil_number(self):
+        if self.core.shape in ['toroidal', 'tor']:
+            return int(self.core.inner_diameter * math.pi/self.wire_diameter_with_insulation) - 1
+        elif self.core.shape in ['cylindrical', 'cylinder']:
+            return int(self.core.length/self.wire_diameter_with_insulation) - 1
+        elif self.core.shape in ['customized', 'custom']:
+            return int(self.core.magnetic_length/self.wire_diameter_with_insulation) - 1
+
+    @property
+    def wire_length(self):
+        if self.core.shape in ['toroidal', 'tor']:
+            return self.coil_number * math.pi * ((self.core.outer_diameter + self.core.inner_diameter)/2)
+        elif self.core.shape in ['cylindrical', 'cylinder']:
+            return self.coil_number * math.pi * self.core.diameter
+        elif self.core.shape in ['customized', 'custom']:
+            return self.coil_number * self.core.magnetic_length
+
+    @property
+    def resistance(self):
+        return self.wire_resistivity * (self.wire_length/self.wire_cross_sectional_area)
