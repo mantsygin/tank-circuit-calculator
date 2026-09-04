@@ -77,3 +77,15 @@ class Wire:
     @property
     def resistance(self):
         return self.wire_resistivity * (self.wire_length/self.wire_cross_sectional_area)
+
+
+def inductance(core, wire):
+    return (4 * math.pi * 10**(-7) * core.mu_r * wire.coil_number**2 * core.core_cross_sectional_area)/core.core_magnetic_path_length
+
+
+def oscillation_period(capacitor, L):
+    return 2 * math.pi * math.sqrt(L * capacitor.capacitance)
+
+
+def frequency(capacitor, L):
+    return 1/(2 * math.pi * math.sqrt(L * capacitor.capacitance))
