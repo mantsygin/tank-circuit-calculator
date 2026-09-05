@@ -1,33 +1,60 @@
 import math
 
 
+class Constants:
+    def __init__(self, name, symbol, value, unit):
+        self.name = name
+        self.symbol = symbol
+        self.value = value
+        self.unit = unit
+
+
+mu_0 = Constants("Permeability of free space", "μ₀", 4 * math.pi * 10**(-7), "H/m")
+speed_of_light = Constants("Speed of light in vacuum", "c", 3 * 10**8, "m/s")
+
+
 class Capacitor:
     def __init__(self, capacitance_farad):
         self.capacitance = capacitance_farad
 
 
 class Core:
-    def __init__(self, shape, mu_r, dim_1, dim_2, dim_3=None):
+    def __init__(self, shape, mu_r, dim_1_mm, dim_2_mm, dim_3_mm=None):
         self.shape = shape.lower()
         self.mu_r = mu_r
 
-        if shape in ['toroidal', 'tor']:
-            self.outer_diameter = dim_1
-            self.inner_diameter = dim_2
-            self.height = dim_3
-        elif shape in ['cylindrical', 'cylinder']:
-            self.diameter = dim_1
-            self.length = dim_2
-        elif shape in ['customized', 'custom']:
-            self.cross_section = dim_1
-            self.magnetic_length = dim_2
+        if self.shape in ['toroidal', 'tor']:
+            self.outer_diameter = dim_1_mm/1000
+            self.inner_diameter = dim_2_mm/1000
+            self.height = dim_3_mm/1000
+        elif self.shape in ['cylindrical', 'cylinder']:
+            self.diameter = dim_1_mm/1000
+            self.length = dim_2_mm/1000
+        elif self.shape in ['customized', 'custom']:
+            self.cross_section = dim_1_mm/1000
+            self.magnetic_length = dim_2_mm/1000
+        else:
+            raise ValueError(f"Incorrect core shape: {self.shape}. Allowed core shapes are: tor, toroidal, "
+                             f"cylinder, cylindrical, custom, customized")
+
+    @classmethod
+    def toroidal(cls, mu_r, outer_diameter_mm, inner_diameter_mm, height_mm):
+        return cls('toroidal', mu_r, outer_diameter_mm, inner_diameter_mm, height_mm)
+
+    @classmethod
+    def cylindrical(cls, mu_r, diameter_mm, length_mm):
+        return cls('cylinder', mu_r, diameter_mm, length_mm)
+
+    @classmethod
+    def custom(cls, mu_r, cross_section_mm, magnetic_length_mm):
+        return cls('custom', mu_r, cross_section_mm, magnetic_length_mm)
 
     @property
     def core_cross_sectional_area(self):
         if self.shape in ['toroidal', 'tor']:
             return ((self.outer_diameter - self.inner_diameter) / 2) * self.height
         if self.shape in ['cylindrical', 'cylinder']:
-            return math.pi*((self.diameter**2)/4)
+            return math.pi * (self.diameter ** 2) / 4
         if self.shape in ['customized', 'custom']:
             return self.cross_section
 
@@ -80,7 +107,7 @@ class Wire:
 
 
 def inductance(core, wire):
-    return (4 * math.pi * 10**(-7) * core.mu_r * wire.coil_number**2 * core.core_cross_sectional_area)/core.core_magnetic_path_length
+    return (mu_0.value * core.mu_r * wire.coil_number**2 * core.core_cross_sectional_area)/core.core_magnetic_path_length
 
 
 def oscillation_period(capacitor, L):
