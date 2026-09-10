@@ -1,2 +1,2 @@
 # tank-circuit-calculator
-The code calculates all the required parameters for your LC circuit: capacitance, conductor resistivity, winding wire length and cross-sectional area, and core dimensions. It also shows the quality factor, characteristic impedance, attenuation coefficient, and more.
+This code calculates the resonant frequency, oscillation period, Q-factor, and operating mode of an LC-tank circuit from core, wire, and capacitor parameters.
