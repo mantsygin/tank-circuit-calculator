@@ -163,6 +163,3 @@ def analyze_circuit(core, wire, capacitor):
 
     print("\n QUALITY FACTOR:")
     print(f"  Q = {Q:.2f}")
-
-
-

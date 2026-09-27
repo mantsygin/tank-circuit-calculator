@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Free LC-circuit calculator</title>
+</head>
+<style>
+    .main-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        padding: 0 20px;
+    }
+    .badge {
+        display: block;
+        box-sizing: border-box;
+        padding: 5px;
+        background: #C0C0C0;
+        color: black;
+        border-radius: 30px;
+        text-align: center;
+    }
+    button {
+        background-color: #2F4F4F;
+        color: #ffffff;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 30px;
+        font-size: 20px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    button:hover {
+        background-color: #1a2e2e;
+    }
+    button:active {
+        transform: scale(0.98);
+    }
+    body {
+        background-color: #ffffff;
+    }
+    h1 {
+        text-align: center;
+        color: #2F4F4F;
+    }
+    a {
+        font-size: 20px;
+        color: #0000ff;
+        text-decoration: underline;
+    }
+    a:hover {
+        text-decoration: none;
+    }
+    table {
+        width: 100%;
+        margin: 0 auto;
+        border-collapse: separate;
+        border-spacing: 0px 4px;
+    }
+    th, td {
+        border-radius: 10px;
+        border: none;
+        padding: 7px 64px;
+    }
+    th {
+        color: #2F4F4F;
+        font-size: 25px;
+        background: #C0C0C0;
+    }
+    td {
+        font-size: 20px;
+        background: #ffffff;
+        color: #808080;
+    }
+    td input {
+        width: 100%;
+        box-sizing: border-box;
+        border: none;
+        padding: 2px;
+        font: inherit;
+        background: transparent;
+        outline: none;
+    }
+    td select {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        padding: 2px 4px;
+        font: inherit;
+        background: transparent;
+        cursor: pointer;
+        color: #2F4F4F;
+    }
+    td select:hover {
+        border-color: #ccc;
+    }
+    td select:focus-visible {
+        outline: none;
+        border-color: #778899;
+    }
+    td.unit {
+        padding: 4px 8px;
+        text-align: center;
+        background: #C0C0C0;
+        color: #2F4F4F;
+    }
+    td.unit_1 {
+        padding: 4px 8px;
+        text-align: center;
+        background: #C0C0C0;
+        color: #2F4F4F;
+    }
+    td.unit_2 {
+        width: 250px;
+    }
+    .nowrap {
+        white-space: nowrap;
+    }
+
+
+</style>
+<body>
+<h1>
+    Free LC-circuit calculator
+</h1>
+<hr>
+<div class="main-container">
+    <div class="badge">
+        <form method="POST">
+            <table>
+                <tr>
+                    <th colspan="3">Characteristics</th>
+                </tr>
+                <tr>
+                    <th colspan="3">Capacitor</th>
+                </tr>
+                <tr>
+                    <td class="unit nowrap">Capacitance</td>
+                    <td><input type="number" name="capacitance" placeholder="Value" step="any"
+                               value="{{ form_data.capacitance or '' }}"></td>
+                    <td class="unit_1 nowrap">nF</td>
+                </tr>
+                <tr>
+                    <th colspan="3">Wire</th>
+                </tr>
+                <tr>
+                    <td class="unit nowrap">Wire diameter</td>
+                    <td><input type="number" name="wire_diameter" placeholder="Value" step="any"
+                               value="{{ form_data.wire_diameter or '' }}"></td>
+                    <td class="unit_1 nowrap">mm</td>
+                </tr>
+                <tr>
+                    <td class="unit nowrap">Wire resistivity</td>
+                    <td><input type="number" name="wire_resistivity" placeholder="Value" step="any"
+                               value="{{ form_data.wire_resistivity or '' }}"></td>
+                    <td class="unit_1 nowrap">microohm per cm</td>
+                </tr>
+                <tr>
+                    <td class="unit nowrap">Insulation thickness</td>
+                    <td><input type="number" name="insulation" placeholder="Value" step="any"
+                               value="{{ form_data.insulation or '' }}"></td>
+                    <td class="unit_1 nowrap">mm</td>
+                </tr>
+                <tr>
+                    <th colspan="3">Core</th>
+                </tr>
+                <tr>
+                    <td class="unit nowrap">Relative magnetic permeability</td>
+                    <td><input type="number" name="mu_r" placeholder="Value" step="any"
+                               value="{{ form_data.mu_r or '' }}"></td>
+                </tr>
+                <tr>
+                    <td class="unit nowrap">Core shape</td>
+                    <td>
+                        <select id="core-shape" name="core_shape">
+                            <option value="toroidal" {% if form_data.core_shape=='toroidal' %}selected{% endif %}>Toroidal</option>
+                            <option value="cylindrical" {% if form_data.core_shape=='cylindrical' %}selected{% endif %}>Cylindrical</option>
+                            <option value="custom" {% if form_data.core_shape=='custom' %}selected{% endif %}>Custom</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="row-toroidal">
+                    <td class="unit nowrap">Outer diameter</td>
+                    <td><input type="number" name="outer_diameter" placeholder="Value" step="any"
+                               value="{{ form_data.outer_diameter or '' }}"></td>
+                    <td class="unit_1 nowrap">mm</td>
+                </tr>
+                <tr class="row-toroidal">
+                    <td class="unit nowrap">Inner diameter</td>
+                    <td><input type="number" name="inner_diameter" placeholder="Value" step="any"
+                               value="{{ form_data.inner_diameter or '' }}"></td>
+                    <td class="unit_1 nowrap">mm</td>
+                </tr>
+                <tr class="row-toroidal">
+                    <td class="unit nowrap">Height</td>
+                    <td><input type="number" name="height" placeholder="Value" step="any"
+                               value="{{ form_data.height or '' }}"></td>
+                    <td class="unit_1 nowrap">mm</td>
+                </tr>
+                <tr class="row-cylindrical" style="display: none;">
+                    <td class="unit nowrap">Diameter</td>
+                    <td><input type="number" name="diameter" placeholder="Value" step="any"
+                               value="{{ form_data.diameter or '' }}"></td>
+                    <td class="unit_1 nowrap">mm</td>
+                </tr>
+                <tr class="row-cylindrical" style="display: none;">
+                    <td class="unit nowrap">Length</td>
+                    <td><input type="number" name="length" placeholder="Value" step="any"
+                               value="{{ form_data.length or '' }}"></td>
+                    <td class="unit_1 nowrap">mm</td>
+                </tr>
+                <tr class="row-custom" style="display: none;">
+                    <td class="unit nowrap">Cross-section</td>
+                    <td><input type="number" name="cross_section" placeholder="Value" step="any"
+                               value="{{ form_data.cross_section or '' }}"></td>
+                    <td class="unit_1 nowrap">mm²</td>
+                </tr>
+                <tr class="row-custom" style="display: none;">
+                    <td class="unit nowrap">Magnetic length</td>
+                    <td><input type="number" name="magnetic_length" placeholder="Value" step="any"
+                               value="{{ form_data.magnetic_length or '' }}"></td>
+                    <td class="unit_1 nowrap">mm</td>
+                </tr>
+            </table>
+            <div style="text-align: center; margin-top: 15px;">
+                <button type="submit" id="calculate-btn">Calculate</button>
+            </div>
+        </form>
+    </div>
+    <div class="badge">
+        <table>
+            <tr>
+                <th colspan="3">Results</th>
+            </tr>
+            <tr>
+                <th colspan="3">Oscillatory parameters</th>
+            </tr>
+            <tr>
+                <td class="unit nowrap">Frequency</td>
+                <td class="unit_2">{{ results.frequency if results else 'Value' }}</td>
+                <td class="unit_1 nowrap">Hz</td>
+            </tr>
+            <tr>
+                <td class="unit nowrap">Period</td>
+                <td class="unit_2">{{ results.period if results else 'Value' }}</td>
+                <td class="unit_1 nowrap">s</td>
+            </tr>
+            <tr>
+                <td class="unit nowrap">Wave length</td>
+                <td class="unit_2">{{ results.wavelength if results else 'Value' }}</td>
+                <td class="unit_1 nowrap">m</td>
+            </tr>
+            <tr>
+                <td class="unit nowrap">A quarter of the wave length</td>
+                <td class="unit_2">{{ results.quarter_wavelength if results else 'Value' }}</td>
+                <td class="unit_1 nowrap">m</td>
+            </tr>
+            <tr>
+                <th colspan="3">Operating mode</th>
+            </tr>
+            <tr>
+                <td class="unit nowrap">Mode</td>
+                <td class="unit_2">{{ results.mode if results else 'Value' }}</td>
+            </tr>
+            <tr>
+                <td class="unit nowrap">Resistance</td>
+                <td class="unit_2">{{ results.resistance if results else 'Value' }}</td>
+                <td class="unit_1 nowrap">Ohm</td>
+            </tr>
+            <tr>
+                <td class="unit nowrap">Critical resistance</td>
+                <td class="unit_2">{{ results.critical_resistance if results else 'Value' }}</td>
+                <td class="unit_1 nowrap">Ohm</td>
+            </tr>
+            <tr>
+                <th colspan="3">Quality factor</th>
+            </tr>
+            <tr>
+                <td class="unit nowrap">Q</td>
+                <td class="unit_2">{{ results.quality_factor if results else 'Value' }}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div style="text-align: center; margin-top: 20px;">
+    <a href="https://github.com/mantsygin/tank-circuit-calculator">
+        Github repository "tank-circuit-calculator"
+    </a>
+</div>
+<script>
+    const shapeSelector = document.getElementById('core-shape');
+    const toroidalRows = document.querySelectorAll('.row-toroidal');
+    const cylindricalRows = document.querySelectorAll('.row-cylindrical');
+    const customRows = document.querySelectorAll('.row-custom');
+
+    function updateForm() {
+        toroidalRows.forEach(row => row.style.display = 'none');
+        cylindricalRows.forEach(row => row.style.display = 'none');
+        customRows.forEach(row => row.style.display = 'none');
+
+        const selectedShape = shapeSelector.value;
+
+        if (selectedShape === 'toroidal') {
+            toroidalRows.forEach(row => row.style.display = '');
+        } else if (selectedShape === 'cylindrical') {
+            cylindricalRows.forEach(row => row.style.display = '');
+        } else if (selectedShape === 'custom') {
+            customRows.forEach(row => row.style.display = '');
+        }
+    }
+
+    updateForm();
+
+    shapeSelector.addEventListener('change', updateForm);
+
+
+</script>
+</body>
+</html>
