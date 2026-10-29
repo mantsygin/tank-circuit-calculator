@@ -12,45 +12,64 @@ def index():
 
     if request.method == 'POST':
         try:
-            form_data['core_shape'] = request.form.get('core_shape')
-            form_data['mu_r'] = request.form.get('mu_r')
-            form_data['capacitance'] = request.form.get('capacitance')
-            form_data['wire_diameter'] = request.form.get('wire_diameter')
-            form_data['wire_resistivity'] = request.form.get('wire_resistivity')
-            form_data['insulation'] = request.form.get('insulation')
+            form_data = request.form.to_dict()
 
-            form_data['outer_diameter'] = request.form.get('outer_diameter')
-            form_data['inner_diameter'] = request.form.get('inner_diameter')
-            form_data['height'] = request.form.get('height')
-            form_data['diameter'] = request.form.get('diameter')
-            form_data['length'] = request.form.get('length')
-            form_data['cross_section'] = request.form.get('cross_section')
-            form_data['magnetic_length'] = request.form.get('magnetic_length')
+            shape = form_data.get('core_shape')
+            mu_r = float(form_data.get('mu_r', 0))
+            capacitance_nf = float(form_data.get('capacitance', 0))
+            wire_diameter = float(form_data.get('wire_diameter', 0))
+            wire_resistivity = float(form_data.get('wire_resistivity', 0))
+            insulation = float(form_data.get('insulation', 0))
 
-            shape = form_data['core_shape']
-            mu_r = float(form_data['mu_r'])
-            capacitance_nf = float(form_data['capacitance'])
-            wire_diameter = float(form_data['wire_diameter'])
-            wire_resistivity = float(form_data['wire_resistivity'])
-            insulation = float(form_data['insulation'])
+            if capacitance_nf <= 0:
+                raise ValueError("Ёмкость должна быть больше нуля.")
+            if wire_diameter <= 0:
+                raise ValueError("Диаметр провода должен быть больше нуля.")
+            if wire_resistivity <= 0:
+                raise ValueError("Удельное сопротивление провода должно быть больше нуля.")
+            if mu_r <= 0:
+                raise ValueError("Магнитная проницаемость должна быть больше нуля.")
+            if insulation < 0:
+                raise ValueError("Толщина изоляции не может быть отрицательной.")
 
             capacitor = Capacitor(capacitance_farad=capacitance_nf * 1e-9)
 
             if shape == 'toroidal':
-                core = Core.toroidal(mu_r,
-                                     float(form_data['outer_diameter']),
-                                     float(form_data['inner_diameter']),
-                                     float(form_data['height']))
+                outer_d = float(form_data.get('outer_diameter', 0))
+                inner_d = float(form_data.get('inner_diameter', 0))
+                height = float(form_data.get('height', 0))
+
+                if outer_d <= inner_d:
+                    raise ValueError("Внешний диаметр тора должен быть больше внутреннего.")
+                if height <= 0:
+                    raise ValueError("Высота тора должна быть больше нуля.")
+
+                core = Core.toroidal(mu_r, outer_d, inner_d, height)
+
             elif shape == 'cylindrical':
-                core = Core.cylindrical(mu_r,
-                                        float(form_data['diameter']),
-                                        float(form_data['length']))
+                diameter = float(form_data.get('diameter', 0))
+                length = float(form_data.get('length', 0))
+
+                if diameter <= 0 or length <= 0:
+                    raise ValueError("Диаметр и длина цилиндра должны быть больше нуля.")
+
+                core = Core.cylindrical(mu_r, diameter, length)
+
             elif shape == 'custom':
-                core = Core.custom(mu_r,
-                                   float(form_data['cross_section']),
-                                   float(form_data['magnetic_length']))
+                cross_section = float(form_data.get('cross_section', 0))
+                magnetic_length = float(form_data.get('magnetic_length', 0))
+
+                if cross_section <= 0 or magnetic_length <= 0:
+                    raise ValueError("Площадь сечения и длина магнитного пути должны быть больше нуля.")
+
+                core = Core.custom(mu_r, cross_section, magnetic_length)
+            else:
+                raise ValueError("Неизвестная форма сердечника.")
 
             wire = Wire(wire_diameter, wire_resistivity, insulation, core)
+
+            if wire.coil_number <= 0:
+                raise ValueError("Провод с такой изоляцией слишком толстый для этого сердечника (не помещается ни одного витка).")
 
             L = inductance(core, wire)
             C = capacitor.capacitance
@@ -78,8 +97,14 @@ def index():
                 'quality_factor': f"{Q:.2f}"
             }
 
+        except ValueError as e:
+            results = {'error': f"Ошибка в данных: {str(e)}"}
+
+        except ZeroDivisionError:
+            results = {'error': "Ошибка расчёта: деление на ноль. Проверьте введённые параметры."}
+
         except Exception as e:
-            results = {'error': str(e)}
+            results = {'error': f"Непредвиденная ошибка: {str(e)}"}
 
     return render_template('index.html', results=results, form_data=form_data)
 

@@ -138,7 +138,7 @@
                 </tr>
                 <tr>
                     <td class="unit nowrap">Capacitance</td>
-                    <td><input type="number" name="capacitance" placeholder="Value" step="any"
+                    <td><input type="number" name="capacitance" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.capacitance or '' }}"></td>
                     <td class="unit_1 nowrap">nF</td>
                 </tr>
@@ -147,19 +147,19 @@
                 </tr>
                 <tr>
                     <td class="unit nowrap">Wire diameter</td>
-                    <td><input type="number" name="wire_diameter" placeholder="Value" step="any"
+                    <td><input type="number" name="wire_diameter" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.wire_diameter or '' }}"></td>
                     <td class="unit_1 nowrap">mm</td>
                 </tr>
                 <tr>
                     <td class="unit nowrap">Wire resistivity</td>
-                    <td><input type="number" name="wire_resistivity" placeholder="Value" step="any"
+                    <td><input type="number" name="wire_resistivity" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.wire_resistivity or '' }}"></td>
                     <td class="unit_1 nowrap">microohm per cm</td>
                 </tr>
                 <tr>
                     <td class="unit nowrap">Insulation thickness</td>
-                    <td><input type="number" name="insulation" placeholder="Value" step="any"
+                    <td><input type="number" name="insulation" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.insulation or '' }}"></td>
                     <td class="unit_1 nowrap">mm</td>
                 </tr>
@@ -168,7 +168,7 @@
                 </tr>
                 <tr>
                     <td class="unit nowrap">Relative magnetic permeability</td>
-                    <td><input type="number" name="mu_r" placeholder="Value" step="any"
+                    <td><input type="number" name="mu_r" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.mu_r or '' }}"></td>
                 </tr>
                 <tr>
@@ -183,43 +183,43 @@
                 </tr>
                 <tr class="row-toroidal">
                     <td class="unit nowrap">Outer diameter</td>
-                    <td><input type="number" name="outer_diameter" placeholder="Value" step="any"
+                    <td><input type="number" name="outer_diameter" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.outer_diameter or '' }}"></td>
                     <td class="unit_1 nowrap">mm</td>
                 </tr>
                 <tr class="row-toroidal">
                     <td class="unit nowrap">Inner diameter</td>
-                    <td><input type="number" name="inner_diameter" placeholder="Value" step="any"
+                    <td><input type="number" name="inner_diameter" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.inner_diameter or '' }}"></td>
                     <td class="unit_1 nowrap">mm</td>
                 </tr>
                 <tr class="row-toroidal">
                     <td class="unit nowrap">Height</td>
-                    <td><input type="number" name="height" placeholder="Value" step="any"
+                    <td><input type="number" name="height" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.height or '' }}"></td>
                     <td class="unit_1 nowrap">mm</td>
                 </tr>
                 <tr class="row-cylindrical" style="display: none;">
                     <td class="unit nowrap">Diameter</td>
-                    <td><input type="number" name="diameter" placeholder="Value" step="any"
+                    <td><input type="number" name="diameter" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.diameter or '' }}"></td>
                     <td class="unit_1 nowrap">mm</td>
                 </tr>
                 <tr class="row-cylindrical" style="display: none;">
                     <td class="unit nowrap">Length</td>
-                    <td><input type="number" name="length" placeholder="Value" step="any"
+                    <td><input type="number" name="length" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.length or '' }}"></td>
                     <td class="unit_1 nowrap">mm</td>
                 </tr>
                 <tr class="row-custom" style="display: none;">
                     <td class="unit nowrap">Cross-section</td>
-                    <td><input type="number" name="cross_section" placeholder="Value" step="any"
+                    <td><input type="number" name="cross_section" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.cross_section or '' }}"></td>
                     <td class="unit_1 nowrap">mm²</td>
                 </tr>
                 <tr class="row-custom" style="display: none;">
                     <td class="unit nowrap">Magnetic length</td>
-                    <td><input type="number" name="magnetic_length" placeholder="Value" step="any"
+                    <td><input type="number" name="magnetic_length" placeholder="Value" step="any" required min="0.001"
                                value="{{ form_data.magnetic_length or '' }}"></td>
                     <td class="unit_1 nowrap">mm</td>
                 </tr>
@@ -230,6 +230,11 @@
         </form>
     </div>
     <div class="badge">
+                {% if results and results.error %}
+            <div style="background-color: #ffcccc; color: #cc0000; padding: 10px; margin-bottom: 15px; border-radius: 5px; text-align: center; font-weight: bold; border: 1px solid #cc0000;">
+                {{ results.error }}
+            </div>
+        {% endif %}
         <table>
             <tr>
                 <th colspan="3">Results</th>
@@ -296,26 +301,41 @@
     const customRows = document.querySelectorAll('.row-custom');
 
     function updateForm() {
-        toroidalRows.forEach(row => row.style.display = 'none');
-        cylindricalRows.forEach(row => row.style.display = 'none');
-        customRows.forEach(row => row.style.display = 'none');
+        // Сначала скрываем все и убираем у них required
+        [toroidalRows, cylindricalRows, customRows].forEach(group => {
+            group.forEach(row => {
+                row.style.display = 'none';
+                const input = row.querySelector('input');
+                if (input) input.required = false; // <--- ВОТ ГЛАВНОЕ ИСПРАВЛЕНИЕ
+            });
+        });
 
         const selectedShape = shapeSelector.value;
 
+        // Показываем нужные поля и возвращаем им required
         if (selectedShape === 'toroidal') {
-            toroidalRows.forEach(row => row.style.display = '');
+            toroidalRows.forEach(row => {
+                row.style.display = '';
+                const input = row.querySelector('input');
+                if (input) input.required = true;
+            });
         } else if (selectedShape === 'cylindrical') {
-            cylindricalRows.forEach(row => row.style.display = '');
+            cylindricalRows.forEach(row => {
+                row.style.display = '';
+                const input = row.querySelector('input');
+                if (input) input.required = true;
+            });
         } else if (selectedShape === 'custom') {
-            customRows.forEach(row => row.style.display = '');
+            customRows.forEach(row => {
+                row.style.display = '';
+                const input = row.querySelector('input');
+                if (input) input.required = true;
+            });
         }
     }
 
     updateForm();
-
     shapeSelector.addEventListener('change', updateForm);
-
-
 </script>
 </body>
 </html>
